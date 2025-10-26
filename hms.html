@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    /* Global Reset and Box Sizing */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Smooth scroll behavior for anchor links */
+    html {
+      scroll-behavior: smooth;
+    }
+
+
+    body {
+      min-height: 100vh;
+    }
+
+
+    /* CSS Variables for easy color management */
+    :root {
+      /* Adjusted to a hospital-appropriate blue */
+      --primary-orange: #07478d;
+      --light-bg: #f5f5dc;
+      --text-color: #333;
+      --border-color: #ccc;
+      --accent-yellow: #ffc107;
+      --card-bg-light: #f0f8ff;
+    }
+
+
+    /* Header/Navigation Bar Styling */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 5%;
+      background-color: #b7b0b0;
+      border-bottom: 1px solid #333;
+      /* Makes the header stick to the top */
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .header .icon {
+      order: 1;
+      font-size: 0.9rem;
+      font-weight: normal;
+      color: black;
+      margin-right: 20px;
+    }
+
+    /* Navigation Links Styling - Order: 3 (Right) */
+    nav {
+      order: 3;
+      /* Pushes the entire nav block to the far right */
+      margin-left: auto;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Styling for primary navigation links */
+    nav ul li a {
+      text-decoration: none;
+      color: black;
+      font-weight: bold;
+      font-size: 16px;
+      transition: color 0.3s, border-bottom 0.3s;
+      padding-bottom: 5px;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+      color: var(--accent-yellow);
+      border-bottom: 2px solid var(--accent-yellow);
+    }
+
+    .search-container-global {
+      order: 2;
+      display: flex;
+      align-items: center;
+      max-width: 400px;
+      flex-grow: 1;
+      background-color: white;
+      border-radius: 50px;
+      padding: 5px 10px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      border: 1px solid #ccc;
+      margin-left: 50px;
+      margin-right: 50px;
+    }
+
+    .global-search-input {
+      border: none;
+      outline: none;
+      flex-grow: 1;
+      padding: 5px 10px;
+      font-size: 14px;
+      color: var(--text-color);
+      background: transparent;
+    }
+
+    /* Style for the search button (the magnifying glass) */
+    .search-button {
+      background-color: var(--primary-orange);
+      border: none;
+      border-radius: 50%;
+      width: 35px;
+      height: 35px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      flex-shrink: 0;
+    }
+
+    .search-button:hover {
+      background-color: #053b75;
+    }
+
+    .search-button i {
+      color: white;
+      font-size: 16px;
+    }
+
+    /* Media Query to handle small screens */
+    @media (max-width: 1100px) {
+      .header {
+        /* Stack the items vertically when there's not enough space */
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 5%;
+        position: relative;
+        /* Unstick on small screens, relies on bottom nav */
+      }
+
+      .header .icon,
+      .search-container-global,
+      nav {
+        order: unset;
+        margin: unset;
+      }
+
+      .header nav {
+        margin: 10px 0;
+      }
+
+      nav ul {
+        gap: 10px;
+        /* Reduce gap on small screens */
+      }
+
+      nav ul li a {
+        font-size: 14px;
+        padding-bottom: 3px;
+      }
+
+      .search-container-global {
+        /* Make search bar full width on small screens */
+        width: 100%;
+        max-width: 90%;
+        margin: 10px auto;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header nav {
+        display: none;
+        /* Hide top navigation on small mobile screens, use bottom nav */
+      }
+    }
+
+
+    /* Slideshow Container */
+    .slideshow-container {
+      position: relative;
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+      margin-top: 0;
+      z-index: 1;
+    }
+
+    /* Styling for individual slides in the slideshow */
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    /* Class to make a slide visible */
+    .slide.active {
+      opacity: 1;
+    }
+
+    /* Hero Content ( slideshow) */
+    .hero-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 80%;
+      /* Increased max-width for better mobile readability */
+      text-align: center;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.6);
+      /* Slightly darker overlay for better text contrast */
+      padding: 30px;
+      border-radius: 10px;
+      z-index: 5;
+    }
+
+    .hero-content h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      /* Responsive font size */
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+
+    .hero-content p {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: #fdf9f9;
+      margin-bottom: 0;
+    }
+
+
+    /* Fixed Bottom Navigation - Mobile Only */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      background-color: rgba(255, 255, 255, 0.98);
+      z-index: 1000;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+      padding: 5px 0;
+      display: none;
+      /* Initially hidden, show only on mobile using media query */
+    }
+
+    @media (max-width: 768px) {
+      .bottom-nav {
+        display: flex;
+        /* Show bottom navigation on smaller screens */
+      }
+
+      /* Ensure sections are pushed up to account for the fixed bottom nav */
+      #contact-section {
+        padding-bottom: 80px;
+      }
+    }
+
+    .nav-item {
+      flex-grow: 1;
+      text-align: center;
+      text-decoration: none;
+      color: var(--primary-orange);
+      transition: background-color 0.3s, color 0.3s;
+      padding: 5px 0;
+      border-radius: 5px;
+    }
+
+    .nav-item i {
+      font-size: 20px;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .nav-item p {
+      font-size: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    /* Hover and active state for bottom navigation items */
+    .nav-item:hover,
+    .nav-item.active-nav {
+      background-color: var(--accent-yellow);
+      color: #000;
+    }
+
+
+    /* Styling for main content sections */
+    #about,
+    #services,
+    #DoctorProfile,
+    #contact-section {
+      padding: 50px 5%;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* About Section Styling */
+    #about {
+      background-color: rgba(104, 101, 101, 0.8);
+      color: rgb(26, 25, 25);
+    }
+
+    #about h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #f0e9e9;
+      font-style: initial;
+    }
+
+    .why-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    /* Image column in the About section */
+    .why-img {
+      flex: 1 1 500px;
+      /* Flex basis for responsiveness */
+      text-align: right;
+    }
+
+    .why-img img {
+      width: 100%;
+      max-width: 500px;
+      float: right;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(90, 81, 81, 0.2);
+      transition: transform 0.3s;
+    }
+
+    .why-img img:hover {
+      transform: scale(1.02);
+    }
+
+    /* Text column in the About section */
+    .why-text {
+      flex: 3 1 500px;
+      padding-left: 20px;
+    }
+
+    .why-text p {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: #161515;
+      font-weight: 500;
+      text-align: left;
+      font-weight: bold;
+      text-decoration: wavy;
+    }
+
+    @media (max-width: 900px) {
+      .why-img img {
+        max-width: 100%;
+        float: none;
+        margin-bottom: 20px;
+      }
+
+      .why-img {
+        text-align: center;
+      }
+
+      .why-text {
+        padding-left: 0;
+      }
+    }
+
+
+    /* Services Section Styling */
+    #services {
+      background-color: rgba(102, 97, 97, 0.8);
+      text-align: center;
+    }
+
+    #services h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #f1ecec;
+    }
+
+    /* Grid layout for department cards */
+    .departments-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      justify-items: center;
+      margin-top: 30px;
+    }
+
+    /* Styling for individual department cards */
+    .department-card {
+      background-color: var(--card-bg-light);
+      color: var(--text-color);
+      border-radius: 15px;
+      width: 100%;
+      max-width: 300px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+
+    .department-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      background-color: #d8f0ff;
+    }
+
+    .department-card .icon {
+      font-size: 2.8rem;
+      margin-bottom: 15px;
+      color: var(--primary-orange);
+    }
+
+    .department-card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+      color: #222;
+    }
+
+    /* Extra Services (Initially hidden, revealed by JS) */
+    .extra-services {
+      display: none;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      justify-items: center;
+      margin-top: 30px;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    /* Keyframe animation for extra services reveal */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+
+    /* Doctor Profile Section Styling */
+    #DoctorProfile {
+      background-color: rgba(102, 97, 97, 0.8);
+      text-align: center;
+    }
+
+    #DoctorProfile h4 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #f1ecec;
+      font-size: 30px;
+
+    }
+
+    /* Styling for the doctor search input */
+    .doctor-search {
+      margin-bottom: 25px;
+    }
+
+    .doctor-search input {
+      padding: 12px 18px;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 25px;
+      border: 2px solid var(--primary-orange);
+      outline: none;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    .doctor-search input:focus {
+      border-color: var(--accent-yellow);
+    }
+
+    /* Grid layout for doctor cards */
+    .doctor-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      justify-items: center;
+      margin-top: 30px;
+    }
+
+    /* Styling for individual doctor cards */
+    .doctor-card {
+      background-color: var(--card-bg-light);
+      color: var(--text-color);
+      border-radius: 15px;
+      width: 100%;
+      max-width: 300px;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    .doctor-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .doctor-card img {
+      width: 100%;
+      height: 200px;
+      /* Fixed height for image consistency */
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    .doctor-card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 5px;
+      color: var(--primary-orange);
+    }
+
+    .doctor-card p {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 5px;
+    }
+
+
+    /* Contact Section Styling */
+    #contact-section {
+      background-color: rgba(102, 97, 97, 0.8);
+      padding-bottom: 50px;
+    }
+
+    #contact-section h5 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #f1ecec;
+      font-size: 30px;
+    }
+
+    /* Main container for the contact form and info (side-by-side) */
+    .contact-section-inner {
+      display: flex;
+      max-width: 1200px;
+      margin: 40px auto 0;
+      background-color: #fff;
+      min-height: 600px;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    /* --- Left Side: Form Container --- */
+    .contact-form-container {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    form input,
+    form textarea {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    form input:focus,
+    form textarea:focus {
+      border-color: var(--primary-orange);
+    }
+
+    form textarea {
+      resize: vertical;
+    }
+
+    .submit-btn {
+      background-color: var(--primary-orange);
+      color: white;
+      padding: 15px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      transition: background-color 0.3s, transform 0.1s;
+    }
+
+    .submit-btn:hover {
+      background-color: #6276a1;
+      transform: translateY(-2px);
+    }
+
+
+    /* --- Right Side: Contact Info Container --- */
+    .contact-info-container {
+      flex: 1;
+      background-color: var(--primary-orange);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: 80%;
+      padding: 20px 0;
+    }
+
+    /* Logo and Branding Styles */
+    .logo-area {
+      position: relative;
+      margin-bottom: 50px;
+      text-align: right;
+    }
+
+    /* Decorative circle behind the hospital name */
+    .logo-circle {
+      position: absolute;
+      top: 50%;
+      right: -100px;
+      transform: translateY(-50%) rotate(45deg);
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      border: 30px solid rgba(255, 255, 255, 0.2);
+      /* Lighter border color for contrast */
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    .hospital-name {
+      font-size: 4em;
+      font-weight: 700;
+      line-height: 1;
+      z-index: 10;
+      position: relative;
+      margin: 0;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Contact Numbers Styles */
+    .contact-numbers {
+      margin-top: 40px;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    .number-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .icon-headset {
+      font-size: 3em;
+      margin-right: 15px;
+      color: var(--accent-yellow);
+    }
+
+    .number {
+      font-size: 2.5em;
+      font-weight: bold;
+    }
+
+    .whatsapp-info {
+      margin-top: 15px;
+      font-size: 1.1em;
+    }
+
+
+    /* Responsive adjustments for Contact Section */
+    @media (max-width: 900px) {
+      .contact-section-inner {
+        /* Stack columns vertically on smaller screens */
+        flex-direction: column;
+        margin: 20px auto;
+        min-height: auto;
+      }
+
+      .contact-form-container,
+      .contact-info-container {
+        flex: none;
+        width: 100%;
+        min-height: auto;
+      }
+
+      .contact-info-container {
+        padding: 40px 20px;
+      }
+
+      .info-content {
+        position: static;
+        transform: none;
+        width: 100%;
+        text-align: left;
+      }
+
+      /* Hide complex logo element on small screens */
+      .logo-area {
+        display: none;
+      }
+
+      .hospital-name {
+        text-align: left;
+        font-size: 2.5em;
+        margin-bottom: 20px;
+      }
+
+      .number {
+        font-size: 1.8em;
+      }
+    }
+
+    /* Custom Message Box/Modal Styling for alerts (Replaces alert()) */
+    .message-box-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      /* Initially hidden, controlled by JS */
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .message-box-overlay.show-modal {
+      display: flex;
+      opacity: 1;
+    }
+
+    .message-box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      max-width: 90%;
+      min-width: 300px;
+      transform: scale(0.9);
+      transition: transform 0.3s ease-out;
+    }
+
+    .message-box-overlay.show-modal .message-box {
+      transform: scale(1);
+    }
+
+    .message-box h3 {
+      margin-bottom: 15px;
+      color: var(--primary-orange);
+    }
+
+    .message-box button {
+      background-color: var(--primary-orange);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+      font-weight: bold;
+      transition: background-color 0.2s;
+    }
+
+    .message-box button:hover {
+      background-color: #053b75;
+    }
+
+
+
+    /* Footer Container Styling */
+    .bionova-footer {
+      background-color: #37578b;
+      /* Dark green background color from the image */
+      color: #ffffff;
+      /* White text color */
+      padding-top: 40px;
+      position: relative;
+      /* Needed for the floating chat icon */
+    }
+
+    /* Main Content Wrapper */
+    .footer-content {
+      display: flex;
+      justify-content: space-around;
+      /* Distributes sections evenly */
+      max-width: 1200px;
+      /* Max width for content alignment */
+      margin: 0 auto;
+      padding: 0 20px 40px 20px;
+      /* Padding for inner content */
+    }
+
+    /* Individual Section Styling */
+    .footer-section {
+      width: 25%;
+      /* Roughly equal width for the four columns */
+      padding-right: 20px;
+    }
+
+    .footer-section:last-child {
+      padding-right: 0;
+      /* Remove padding from the last column */
+    }
+
+    /* Section Title Styling */
+    .section-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    /* Link List Styling */
+    .link-list {
+      list-style: none;
+      /* Remove bullet points */
+    }
+
+    .link-list li {
+      margin-bottom: 10px;
+    }
+
+    .link-list a,
+    .contact-info a {
+      color: inherit;
+      /* Inherit white color */
+      text-decoration: none;
+      /* Remove underline */
+      font-size: 1em;
+      transition: color 0.3s;
+    }
+
+    .link-list a:hover,
+    .contact-info a:hover {
+      color: #a8a8a8;
+      /* Lighter color on hover */
+    }
+
+    /* Hospital Info (Logo and Socials) */
+    .hospital-info {
+      width: 30%;
+      /* Slightly wider for the logo area */
+    }
+
+    .logo-container {
+      margin-bottom: 20px;
+      /* In a real project, this would contain an <img> tag */
+    }
+
+    /* Placeholder for the Logo (matching the look in the image) */
+    .logo-placeholder {
+      background-color: #fff;
+      color: #0d0d0d;
+      padding: 10px;
+      border-radius: 5px;
+      height: 100px;
+      /* Approximate height of the logo image */
+      width: 280px;
+      /* Approximate width */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5em;
+      font-weight: 700;
+    }
+
+    /* Social Media Icons */
+    .social-links {
+      display: flex;
+      gap: 15px;
+    }
+
+    .social-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      /* Makes the icons circular */
+      background-color: #fff;
+      /* White background for icons */
+      color: #51728d;
+      /* Green icon color */
+      font-size: 1.2em;
+      text-decoration: none;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .social-icon:hover {
+      background-color: #a8a8a8;
+    }
+
+    /* Get In Touch Contact Details */
+    .contact-info {
+      font-style: normal;
+      /* Remove italic from address tag */
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 15px;
+      font-size: 1em;
+      line-height: 1.4;
+    }
+
+    .contact-item i {
+      margin-right: 10px;
+      font-size: 1.2em;
+      margin-top: 2px;
+      /* Slight alignment adjustment */
+    }
+
+    /* Copyright Bar Styling */
+    .copyright-bar {
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      /* Light separator line */
+      text-align: left;
+      padding: 15px 20px;
+      font-size: 0.9em;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      /* For chat bubble alignment */
+    }
+
+    /* Floating Chat/Notification Icon */
+    .floating-chat {
+      position: absolute;
+      bottom: 25px;
+      /* Adjust as needed */
+      right: 20px;
+      /* Adjust as needed */
+      width: 40px;
+      height: 40px;
+      background-color: #00ff00;
+      /* Bright green color for the chat icon */
+      color: #0b6623;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.2em;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      border: 3px solid #fff;
+      /* White border as seen in the image */
+    }
+  </style>
+</head>
+
+<body>
+  <!-- HEADER -->
+  <header class="header">
+    <div class="icon"><i class="fa-solid fa-house-medical-flag"></i>BioNovaHealth</div>
+    <nav>
+      <ul>
+        <li><a href="#home" class="active">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#DoctorProfile">Doctor</a></li>
+        <li><a href="#contact-section">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="search-container-global">
+      <input type="text" id="globalSearchInput" placeholder="Search for section: doctor, service, about..."
+        class="global-search-input">
+      <button class="search-button" id="globalSearchButton">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- SLIDESHOW SECTION -->
+  <section id="home" class="slideshow-container">
+    <div class="slide active" style="background-image: url('Gemini_Generated_Image_ouwf1wouwf1wouwf.png');">
+      <div class="hero-content">
+        <h1>Welcome to BioNova Health</h1>
+        <p>“Together, we heal.”</p>
+      </div>
+    </div>
+    <div class="slide" style="background-image: url('pexels-pixabay-236380.jpg');">
+      <div class="hero-content">
+        <h1>Comfortable Healing</h1>
+        <p>Modern rooms designed for patient well-being.</p>
+      </div>
+    </div>
+    <div class="slide" style="background-image: url('istockphoto-139610675-612x612.jpg');">
+      <div class="hero-content">
+        <h1>24/7 Care</h1>
+        <p>Dedicated staff ready around the clock.</p>
+      </div>
+    </div>
+    <div class="slide" style="background-image: url('hospital-background-cq3eyxdhk7r7pzoe.jpg');">
+      <div class="hero-content">
+        <h1>Advanced Technology</h1>
+        <p>State-of-the-art equipment for accurate diagnoses.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT SECTION -->
+  <section id="about">
+    <h2>About</h2>
+    <div class="why-container">
+      <div class="why-img">
+        <img src="ChatGPT Image Oct 7, 2025, 11_12_38 AM.png" alt="doctor">
+      </div>
+      <div class="why-text">
+        <p>
+          At BioNova Health, we believe that quality healthcare begins with compassion, trust, and innovation.
+          Our hospital combines advanced medical technology with a patient-centered approach to ensure you
+          receive the best possible care. With highly skilled doctors, 24/7 emergency services, and a
+          commitment to excellence, we strive to make every patient’s journey toward recovery safe,
+          comfortable, and successful.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES SECTION -->
+  <section id="services">
+    <h2>Our Healthcare Services</h2>
+
+    <div class="departments-container">
+      <div class="department-card">
+        <div class="icon"><i class="fa-solid fa-truck-medical"></i></div>
+        <h3>24/7 Outpatient Clinic</h3>
+        <p>Walk-in and scheduled non-emergency care, lab tests, imaging, minor procedures.</p>
+      </div>
+
+      <div class="department-card">
+        <div class="icon"><i class="fa-solid fa-baby"></i></div>
+        <h3>Emergency & Trauma Care</h3>
+        <p>Rapid response for critical injuries, accident victims, and sudden illnesses.</p>
+      </div>
+
+      <div class="department-card">
+        <div class="icon"><i class="fa-solid fa-bed-pulse"></i></div>
+        <h3>Intensive Care Unit (ICU)</h3>
+        <p>Our ICU is staffed with highly trained professionals to provide critical care.</p>
+      </div>
+
+      <div class="department-card">
+        <div class="icon"><i class="fa-solid fa-brain"></i></div>
+        <h3>Neurology & Neurosurgery</h3>
+        <p>Brain and nerve disorders, stroke care, spinal surgery.</p>
+      </div>
+
+      <div class="department-card">
+        <div class="icon"><i class="fa-solid fa-syringe"></i></div>
+        <h3>Surgical Services</h3>
+        <p>We offer a range of surgical services, from minimally invasive procedures to complex surgeries.</p>
+      </div>
+
+      <div class="department-card" id="moreServicesCard">
+        <div class="icon"><i class="fa-solid fa-stethoscope"></i></div>
+        <h3>And Many More...</h3>
+        <p>Click here to see more services.</p>
+      </div>
+    </div>
+
+    <!-- Extra Services Container (Initially hidden) -->
+    <div class="extra-services" id="extraServices">
+      <div class="department-card">
+        <div class="icon"><i class="fa-solid fa-heart-pulse"></i></div>
+        <h3>Cardiology</h3>
+        <p>Advanced cardiac care and surgery.</p>
+      </div>
+
+      <div class="department-card">
+        <div class="icon"><i class="fa-solid fa-x-ray"></i></div>
+        <h3>Radiology</h3>
+        <p>Modern X-ray, MRI, and CT scan facilities.</p>
+      </div>
+
+      <div class="department-card">
+        <div class="icon"><i class="fa-solid fa-tooth"></i></div>
+        <h3>Dental Care</h3>
+        <p>Comprehensive oral health and dental surgery.</p>
+      </div>
+
+      <div class="department-card">
+        <div class="icon"><i class="fa-solid fa-flask-vial"></i></div>
+        <h3>Laboratory</h3>
+        <p>24/7 diagnostic and pathology services.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCTOR PROFILE SECTION -->
+  <section id="DoctorProfile">
+    <h4>Doctor Profile</h4>
+    <div class="doctor-search">
+      <input type="text" id="searchDoctor" placeholder="Search doctor by name or specialty...">
+    </div>
+
+    <div class="doctor-container" id="doctorContainer">
+
+      <div class="doctor-card">
+        <img src="doctors-day-handsome-brunette-cute-guy-medical-gown-with-crossed-hands.jpg" alt="Dr. John Smith">
+        <h3>Dr. John Smith</h3>
+        <p>Cardiologist</p>
+        <p>Kazan State Medical College</p>
+        <p>Specializes in heart conditions and treatments.</p>
+        <p>Experience: 15 years</p>
+        <p>Contact: 0123-456-7890</p>
+      </div>
+      <div class="doctor-card">
+        <img
+          src="hospital-healthcare-workers-covid-19-treatment-concept-young-doctor-scrubs-making-daily-errands-clinic-listening-patient-symptoms-look-camera-professional-physician-curing-diseases.jpg"
+          alt="Dr. Jane Doe">
+        <h3>Dr. Jane Doe</h3>
+        <p>Neurologist</p>
+        <p>Kazan State Medical College</p>
+        <p>Specializes in brain and nerve disorders.</p>
+        <p>Experience: 12 years</p>
+        <p>Contact: 0987-654-3210</p>
+      </div>
+      <div class="doctor-card">
+        <img src="female-doctor-hospital.jpg" alt="Dr. Emily White">
+        <h3>Dr. Emily White</h3>
+        <p>Orthopedic Surgeon</p>
+        <p>Kazan State Medical College</p>
+        <p>Specializes in joint replacement and sports injuries.</p>
+        <p>Experience: 10 years</p>
+        <p>Contact: 0456-789-0123</p>
+      </div>
+      <div class="doctor-card">
+        <img src="front-view-young-female-doctor-white-medical-suit-with-stethoscope-smiling-white.jpg"
+          alt="Dr. Wednesday Adams">
+        <h3>Dr. Wednesday Addams</h3>
+        <p>Pediatrician</p>
+        <p>Kazan State Medical College</p>
+        <p>Specializes in child health and development.</p>
+        <p>Experience: 8 years</p>
+        <p>Contact: 0678-123-4567</p>
+      </div>
+      <div class="doctor-card">
+        <img src="brunette-doctor-with-glasses-stethoscope.jpg" alt="Dr. Julie Green">
+        <h3>Dr. Julie Green</h3>
+        <p>Orthopedic Surgeon</p>
+        <p>Kazan State Medical College</p>
+        <p>Specializes in joint replacement and sports injuries.</p>
+        <p>Experience: 10 years</p>
+        <p>Contact: 0456-789-0123</p>
+      </div>
+      <div class="doctor-card">
+        <img src="young-handsome-physician-medical-robe-with-stethoscope.jpg" alt="Dr. Michael Brown">
+        <h3>Dr. Michael Brown</h3>
+        <p>Pediatrician</p>
+        <p>Kazan State Medical College</p>
+        <p>Specializes in child health and development.</p>
+        <p>Experience: 8 years</p>
+        <p>Contact: 0678-123-4567</p>
+      </div>
+      <div class="doctor-card">
+        <img src="portrait-friendly-male-doctor-dressed-uniform.jpg" alt="Dr. Gourdgeous Black">
+        <h3>Dr. Gourdgeous Black</h3>
+        <p>Orthopedic Surgeon</p>
+        <p>Kazan State Medical College</p>
+        <p>Specializes in joint replacement and sports injuries.</p>
+        <p>Experience: 10 years</p>
+        <p>Contact: 0456-789-0123</p>
+      </div>
+      <div class="doctor-card">
+        <img src="portrait-professional-medical-worker-posing-picture-with-arms-folded.jpg" alt="Dr. William Smith">
+        <h3>Dr. William Smith</h3>
+        <p>Pediatrician</p>
+        <p>Kazan State Medical College</p>
+        <p>Specializes in child health and development.</p>
+        <p>Experience: 8 years</p>
+        <p>Contact: 0678-123-4567</p>
+      </div>
+      <div class="doctor-card">
+        <img src="beautiful-young-female-doctor-looking-camera-office.jpg" alt="Dr. Sonia Alva">
+        <h3>Dr. Sonia Alva</h3>
+        <p>Orthopedic Surgeon</p>
+        <p>Kazan State Medical College</p>
+        <p>Specializes in joint replacement and sports injuries.</p>
+        <p>Experience: 10 years</p>
+        <p>Contact: 0456-789-0123</p>
+      </div>
+      <div class="doctor-card">
+        <img src="doctors-day-handsome-brunette-cute-guy-medical-gown-with-crossed-hands.jpg" alt="Dr. Isaac Ordonez">
+        <h3>Dr. Isaac Ordonez</h3>
+        <p>Pediatrician</p>
+        <p>Kazan State Medical College</p>
+        <p>Specializes in child health and development.</p>
+        <p>Experience: 8 years</p>
+        <p>Contact: 0678-123-4567</p>
+      </div>
+
+      <div class="doctor-card">
+        <img src="HD-wallpaper-medical-hospital.jpg" alt="many more">
+        <h3>And Many More...</h3>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT SECTION -->
+  <section id="contact-section">
+    <h5>Contact Us</h5>
+    <div class="contact-section-inner">
+      <div class="contact-form-container">
+        <form id="contactForm">
+          <input type="text" id="name" name="name" placeholder="Your Name" required>
+
+          <input type="email" id="email" name="email" placeholder="Your Email" required>
+
+          <textarea id="message" name="message" placeholder="Your Message" rows="6" required></textarea>
+
+          <button type="submit" class="submit-btn">Submit</button>
+        </form>
+      </div>
+
+      <div class="contact-info-container">
+        <div class="info-content">
+          <div class="logo-area">
+            <p class="hospital-name">BioN<span class="logo-half">o</span>va</p>
+            <div class="logo-circle"></div>
+          </div>
+
+          <div class="contact-numbers">
+            <div class="number-item">
+              <i class="fas fa-headset icon-headset"></i>
+              <span class="number">10666</span>
+            </div>
+            <p>+8801914 001234 International: +880 2-2222-62466</p>
+            <p class="whatsapp-info">
+              WhatsApp: +8801914 001214
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fixed Bottom Navigation (Mobile) -->
+  <nav class="bottom-nav">
+    <a href="#home" class="nav-item active-nav" data-target="home">
+      <i class="fa-solid fa-house"></i>
+      <p>Home</p>
+    </a>
+    <a href="#about" class="nav-item" data-target="about">
+      <i class="fa-solid fa-circle-info"></i>
+      <p>About</p>
+    </a>
+    <a href="#services" class="nav-item" data-target="services">
+      <i class="fa-solid fa-stethoscope"></i>
+      <p>Services</p>
+    </a>
+    <a href="#DoctorProfile" class="nav-item" data-target="DoctorProfile">
+      <i class="fa-solid fa-user-doctor"></i>
+      <p>Doctors</p>
+    </a>
+    <a href="#contact-section" class="nav-item" data-target="contact-section">
+      <i class="fa-solid fa-envelope"></i>
+      <p>Contact</p>
+    </a>
+  </nav>
+
+  <!-- Custom Message Box/Modal (Hidden by default) -->
+  <div class="message-box-overlay" id="messageBoxOverlay">
+    <div class="message-box" id="messageBox">
+      <h3 id="messageBoxTitle"></h3>
+      <p id="messageBoxContent"></p>
+      <button id="messageBoxClose">OK</button>
+    </div>
+  </div>
+
+  <!--Footer section-->
+  <footer class="bionova-footer">
+    <div class="footer-content">
+      <div class="footer-section hospital-info">
+        <div class="logo-container">
+          <div class="logo-placeholder">
+            <span class="logo-text">BioNovaHealth</span>
+          </div>
+        </div>
+        <div class="social-links">
+          <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+          <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-section">
+        <h3 class="section-title">Quick Links</h3>
+        <ul class="link-list">
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Event & Notices</a></li>
+          <li><a href="#">Gallery</a></li>
+          <li><a href="#">Career</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h3 class="section-title">Special Services</h3>
+        <ul class="link-list">
+          <li><a href="#">NICU</a></li>
+          <li><a href="#">Dental Unit</a></li>
+          <li><a href="#">Eye & Phaco Centre</a></li>
+          <li><a href="#">Physiotherapy Centre</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section get-in-touch">
+        <h3 class="section-title">Get In Touch</h3>
+        <address class="contact-info">
+          <div class="contact-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>1105 W Peachtree St NW, Atlanta, GA 30309</span>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-phone-alt"></i>
+            <a href="tel:+6652989866">+6652989866</a>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-phone-alt"></i>
+            <a href="tel:09611900723">09611900723</a>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-envelope"></i>
+            <a href="mailto:BioNovaHospital.bd@gmail.com">bioNovahospital.bd@gmail.com</a>
+          </div>
+        </address>
+      </div>
+    </div>
+
+    <div class="copyright-bar">
+      <p>© All Rights Reserved by BioNova Hospital – Developed IT WAY USA</p>
+
+    </div>
+  </footer>
+
+  <script>
+    // Helper function to show the custom modal message
+    function showMessage(title, message) {
+      const overlay = document.getElementById('messageBoxOverlay');
+      const box = document.getElementById('messageBox');
+      document.getElementById('messageBoxTitle').textContent = title;
+      document.getElementById('messageBoxContent').textContent = message;
+
+      // Use classes for smooth transition and visibility
+      overlay.classList.add('show-modal');
+      box.classList.add('show');
+    }
+
+    // Function to hide the custom modal message
+    function hideMessage() {
+      const overlay = document.getElementById('messageBoxOverlay');
+      const box = document.getElementById('messageBox');
+
+      box.classList.remove('show');
+      // Hide overlay after transition
+      setTimeout(() => {
+        overlay.classList.remove('show-modal');
+      }, 300);
+    }
+
+    // Ensures the script runs after the whole page is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+
+      // Attach close event to the modal button
+      document.getElementById('messageBoxClose').addEventListener('click', hideMessage);
+
+      /*  'Show More Services' Toggle Functionality*/
+      const moreCard = document.getElementById('moreServicesCard');
+      const extraServices = document.getElementById('extraServices');
+
+      if (moreCard && extraServices) {
+        moreCard.addEventListener('click', () => {
+          // Toggle display style
+          if (extraServices.style.display === 'grid') {
+            extraServices.style.display = 'none';
+            // Change text back to "Show More"
+            moreCard.querySelector('h3').textContent = 'And Many More...';
+            moreCard.querySelector('p').textContent = 'Click here to see more services.';
+          } else {
+            extraServices.style.display = 'grid';
+            // Change text to "Show Less"
+            moreCard.querySelector('h3').textContent = 'Show Less';
+            moreCard.querySelector('p').textContent = 'Click again to hide extra services.';
+          }
+        });
+      }
+
+
+      /* Slideshow Functionality */
+      const slides = document.querySelectorAll('.slide');
+      if (slides.length > 0) {
+        let currentSlide = 0;
+        const slideInterval = 5000; // 5 seconds
+
+        function nextSlide() {
+          // Hide current slide
+          slides[currentSlide].classList.remove('active');
+          // Calculate next slide index (loop back to 0)
+          currentSlide = (currentSlide + 1) % slides.length;
+          // Show next slide
+          slides[currentSlide].classList.add('active');
+        }
+
+        // Slideshow automation (changes slide every 5 seconds)
+        setInterval(nextSlide, slideInterval);
+      }
+
+
+      /*Contact Form Submission Handler (Uses custom modal)*/
+      const contactForm = document.getElementById('contactForm');
+      if (contactForm) {
+        contactForm.addEventListener('submit', function (event) {
+          event.preventDefault(); // Stop the form from submitting normally
+
+          const name = document.getElementById('name').value;
+          const email = document.getElementById('email').value;
+          const message = document.getElementById('message').value;
+
+          if (name && email && message) {
+            showMessage('Success!', 'Thank you for your message! We will get back to you soon.');
+            this.reset(); // Clear the form fields
+          } else {
+            showMessage('Error', 'Please fill out all fields.');
+          }
+        });
+      }
+
+
+      /*Doctor Profile Search/Filter*/
+      const searchDoctorInput = document.getElementById('searchDoctor');
+      const doctorContainer = document.getElementById('doctorContainer');
+      // Collect all doctor cards, excluding the 'And Many More...' card at the end
+      const doctorCards = doctorContainer ? Array.from(doctorContainer.querySelectorAll('.doctor-card')).slice(0, -1) : [];
+
+      if (searchDoctorInput) {
+        searchDoctorInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase().trim();
+
+          doctorCards.forEach(card => {
+            // Get relevant text content for filtering (Name, Specialty, Experience, etc.)
+            const textContent = card.textContent.toLowerCase();
+
+            if (textContent.includes(query)) {
+              card.style.display = 'block';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      }
+
+
+      /*Global Header Search (Section Navigation)*/
+      const globalSearchInput = document.getElementById('globalSearchInput');
+      const globalSearchButton = document.getElementById('globalSearchButton');
+
+      function performGlobalSearch() {
+        const query = globalSearchInput.value.toLowerCase().trim();
+        let targetId = null;
+
+        // Simple keyword mapping for section navigation
+        if (query.includes('doctor') || query.includes('physician') || query.includes('profile')) {
+          targetId = 'DoctorProfile';
+        } else if (query.includes('service') || query.includes('department') || query.includes('care') || query.includes('clinic')) {
+          targetId = 'services';
+        } else if (query.includes('about') || query.includes('mission') || query.includes('why')) {
+          targetId = 'about';
+        } else if (query.includes('contact') || query.includes('number') || query.includes('email')) {
+          targetId = 'contact-section';
+        } else if (query.includes('home') || query.includes('welcome')) {
+          targetId = 'home';
+        }
+
+        if (targetId) {
+          document.getElementById(targetId).scrollIntoView({ behavior: 'smooth' });
+          globalSearchInput.value = ''; // Clear after navigation
+        } else {
+          showMessage('Search Result', `Could not find a matching section for "${query}". Try searching for 'doctor', 'service', or 'contact'.`);
+        }
+      }
+
+      if (globalSearchButton && globalSearchInput) {
+        globalSearchButton.addEventListener('click', performGlobalSearch);
+        globalSearchInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            performGlobalSearch();
+          }
+        });
+      }
+
+
+      /* 6. Scroll Spy Functionality (Updates Active Nav Links) */
+      const sections = document.querySelectorAll('section[id]');
+      const navLinks = document.querySelectorAll('.header nav ul li a');
+      const bottomNavItems = document.querySelectorAll('.bottom-nav .nav-item');
+
+      function updateActiveLink() {
+        let current = 'home'; // Default to home
+
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop;
+          // Use an offset to correctly trigger the active state before reaching the exact top
+          if (window.scrollY >= sectionTop - 200) {
+            current = section.getAttribute('id');
+          }
+        });
+
+        // Update Top Navigation
+        navLinks.forEach(a => {
+          a.classList.remove('active');
+          if (a.getAttribute('href').substring(1) === current) {
+            a.classList.add('active');
+          }
+        });
+
+        // Update Bottom Navigation
+        bottomNavItems.forEach(item => {
+          item.classList.remove('active-nav');
+          if (item.getAttribute('data-target') === current) {
+            item.classList.add('active-nav');
+          }
+        });
+      }
+
+      window.addEventListener('scroll', updateActiveLink);
+      // Run once on load to set the initial state
+      updateActiveLink();
+
+    });
+
+
+  </script>
+</body>
+
+</html>
